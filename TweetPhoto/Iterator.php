@@ -10,7 +10,6 @@ class TweetPhoto_Iterator implements Iterator, ArrayAccess, Countable
 	private $array;
 
 
-
    /**
 	* The current position of the iterator.
 	* @access Private
@@ -32,8 +31,36 @@ class TweetPhoto_Iterator implements Iterator, ArrayAccess, Countable
 	*/
 	public function __construct()
 	{
-		$this->array  = array();
+		$this->array    = array();
 		$this->position = 0;
+	}
+
+
+   // ! Accessor Method
+
+   /**
+	* Returns the current position of the iterator.
+	*
+	* @param None
+	* @author Daniel Wilhelm II Murdoch <wilhelm.murdoch@gmail.com>
+	* @since Build 1.0.1 Alpha
+	* @access Public
+	* @return Object
+	*/
+	public function pop()
+	{
+		$position = $this->count() - 1;
+
+		if(false == $this->offsetExists($position))
+		{
+			return false;
+		}
+
+		$value = $this->seek($position);
+
+		$this->offsetUnset($position);
+
+		return $value;
 	}
 
 
@@ -185,11 +212,6 @@ class TweetPhoto_Iterator implements Iterator, ArrayAccess, Countable
 	{
 		if($this->offsetExists($position))
 		{
-			if(isset($this->array[$position]->href) && preg_match('#([0-9]+)$#i', $this->array[$position]->href, $matches))
-			{
-				$this->array[$position]->id = $matches[1];
-			}
-
 			return $this->array[$position];
 		}
 
@@ -209,9 +231,16 @@ class TweetPhoto_Iterator implements Iterator, ArrayAccess, Countable
 	* @access Public
 	* @return Boolean
 	*/
-	public function offsetSet($position, $value)
+	public function offsetSet($offset, $value)
 	{
-		$this->array[$position] = $value;
+		if(false == is_null($offset))
+		{
+			$this->array[$offset] = $value;
+
+			return true;
+		}
+
+		$this->array[] = $value;
 
 		return true;
 	}

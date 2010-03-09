@@ -17,6 +17,33 @@ class TweetPhoto_Config
 	const SIGNIN_METHOD_FOURSQUARE = 2;
 	const SIGNIN_METHOD_FACEBOOK   = 4;
 
+	static public $sorts = array
+	(
+		'desc',
+		'asc'
+	);
+
+	static public $networks = array
+	(
+		'all',
+		'facebook',
+		'twitter'
+	);
+
+	static public $photo_filters = array
+	(
+		'date',
+		'comments',
+		'views'
+	);
+
+	static public $leaderboard_filters = array
+	(
+		'viewed',
+		'commented',
+		'voted'
+	);
+
 	static private $messages = array
 	(
 		'VOTES' => array

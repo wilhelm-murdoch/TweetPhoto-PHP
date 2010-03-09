@@ -1,8 +1,8 @@
 <?php
 
-if(false == function_exists('tweetPhotoAutoload'))
+if(false == function_exists('autoLoadTweetPhoto'))
 {
-	function tweetPhotoAutoload($class)
+	function autoLoadTweetPhoto($class)
 	{
 		if(strpos($class, 'TweetPhoto_') === 0)
 		{
@@ -17,5 +17,5 @@ if(false == function_exists('tweetPhotoAutoload'))
 		return true;
 	}
 
-	spl_autoload_register('tweetPhotoAutoload');
+	spl_autoload_register('autoLoadTweetPhoto');
 }
