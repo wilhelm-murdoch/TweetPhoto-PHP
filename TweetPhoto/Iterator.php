@@ -47,7 +47,7 @@ class TweetPhoto_Iterator implements Iterator, ArrayAccess, Countable
 	* @access Public
 	* @return Object
 	*/
-	public function pop()
+	public function pop($unset = true)
 	{
 		$position = $this->count() - 1;
 
@@ -58,9 +58,38 @@ class TweetPhoto_Iterator implements Iterator, ArrayAccess, Countable
 
 		$value = $this->seek($position);
 
-		$this->offsetUnset($position);
+		if($unset)
+		{
+			$this->offsetUnset($position);
+		}
+
+		$this->rewind();
 
 		return $value;
+	}
+
+
+   // ! Accessor Method
+
+   /**
+	* Returns the current position of the iterator.
+	*
+	* @param None
+	* @author Daniel Wilhelm II Murdoch <wilhelm.murdoch@gmail.com>
+	* @since Build 1.0.1 Alpha
+	* @access Public
+	* @return Object
+	*/
+	public function append($value, $rewind = true)
+	{
+		$this->array[] = $value;
+
+		if($rewind)
+		{
+			$this->rewind();
+		}
+
+		return true;
 	}
 
 

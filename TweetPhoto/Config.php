@@ -11,6 +11,7 @@ class TweetPhoto_Config
 	const HTTP_METHOD_PUT    = 4;
 	const HTTP_METHOD_DELETE = 8;
 
+	const PARAM_SEPARATOR = '&';
 	const CHARACTER_LIMIT = 200;
 
 	const SIGNIN_METHOD_TWITTER    = 1;
@@ -42,6 +43,39 @@ class TweetPhoto_Config
 		'viewed',
 		'commented',
 		'voted'
+	);
+
+	static public $social_feed_filters = array
+	(
+		'voted',
+		'commented',
+		'favorited',
+		'uploadedphoto'
+	);
+
+	static public $broadcast_ids = array
+	(
+		'thumbsup',
+		'thumbsdown',
+		'favorite'
+	);
+
+	static public $service_ids = array
+	(
+		'twitter',
+		'foursquare',
+		'myspace',
+		'facebook'
+	);
+
+	static public $user_settings = array
+	(
+		'hideviewingpatterns',
+		'donottweetfavoritephoto',
+		'hidevotes',
+		'maptype',
+		'shortenurl',
+		'pin'
 	);
 
 	static private $messages = array
