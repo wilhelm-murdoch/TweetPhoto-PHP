@@ -2,6 +2,8 @@
 
 class TweetPhoto_Config
 {
+	const SERVICE = 'http://tweetphotoapi.com/api/tpapi.svc/json';
+
 	const ACCOUNT_USERNAME = USERNAME;
 	const ACCOUNT_PASSWORD = PASSWORD;
 	const ACCOUNT_KEY      = API_KEY;

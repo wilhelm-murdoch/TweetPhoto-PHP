@@ -2,7 +2,6 @@
 
 class TweetPhoto_Api
 {
-	private $service;
 	private $username;
 	private $password;
 	private $api_key;
@@ -21,7 +20,6 @@ class TweetPhoto_Api
 	 */
 	public function __construct($username = TweetPhoto_Config::ACCOUNT_USERNAME, $password = TweetPhoto_Config::ACCOUNT_PASSWORD, $api_key = TweetPhoto_Config::ACCOUNT_KEY)
 	{
-		$this->service  = 'http://tweetphotoapi.com/api/tpapi.svc/json';
 		$this->username = $username;
 		$this->password = $password;
 		$this->api_key  = $api_key;
@@ -926,17 +924,21 @@ class TweetPhoto_Api
 	 * @access Static Private
 	 * @return Boolean
 	 */
-	private function sendRequest($url, $method = TweetPhoto_Config::HTTP_METHOD_GET, array $headers = array(), $data = null)
+	public function sendRequest($url, $method = TweetPhoto_Config::HTTP_METHOD_GET, array $headers = array(), $data = null, $json_encode = true)
 	{
 		$headers[] = "TPAPI: {$this->username},{$this->password}";
 
-		$curl = curl_init($this->service . $url);
+		$curl = curl_init(TweetPhoto_Config::SERVICE . $url);
 
 		if($data)
 		{
-			$json = json_encode($data);
-			$headers[] = 'Content-Length: ' . strlen($json);
-			curl_setopt($curl, CURLOPT_POSTFIELDS, $json);
+			if($json_encode)
+			{
+				$data = json_encode($data);
+			}
+
+			$headers[] = 'Content-Length: ' . strlen($data);
+			curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
 		}
 		else
 		{
@@ -971,5 +973,10 @@ class TweetPhoto_Api
 			'code'    => $http_code,
 			'results' => json_decode($response)
 		);
+	}
+
+	public function __get($property)
+	{
+		return $this->$property;
 	}
 }

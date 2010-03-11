@@ -9,9 +9,11 @@ require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'TweetPhoto/Autoload.php'
 
 try
 {
-	echo '<pre>';
-	print_r(TweetPhoto_Api::singleton()->addLinkToService('Twitter', 'test', 'merp'));
-	echo '</pre>';
+	$Upload = new TweetPhoto_Upload;
+
+	$Upload->addFile(new TweetPhoto_Upload_File(realpath('kitty.jpg'), 'Huzzah!'));
+
+	$Upload->upload();
 }
 catch(TweetPhoto_Exception $Exception)
 {
