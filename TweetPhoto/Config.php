@@ -20,6 +20,10 @@ class TweetPhoto_Config
 	const SIGNIN_METHOD_FOURSQUARE = 2;
 	const SIGNIN_METHOD_FACEBOOK   = 4;
 
+	const UPLOAD_CHUNK = 1;
+	const UPLOAD_FILE  = 2;
+	const UPLOAD_BOTH  = 4;
+
 	static public $sorts = array
 	(
 		'desc',
