@@ -2,18 +2,18 @@
 
 class TweetPhoto_Upload
 {
-	private $UploadIteratorChunk;
+	private $UploadIteratorChunked;
 	private $UploadIteratorFile;
 
 	public function __construct()
 	{
-		$this->UploadIteratorChunk = new TweetPhoto_Upload_Iterator;
-		$this->UploadIteratorFile  = new TweetPhoto_Upload_Iterator;
+		$this->UploadIteratorChunked = new TweetPhoto_Upload_Iterator;
+		$this->UploadIteratorFile    = new TweetPhoto_Upload_Iterator;
 	}
 
-	public function addChunk(TweetPhoto_Upload_Chunk $Chunk)
+	public function addChunked(TweetPhoto_Upload_Chunked $Chunked)
 	{
-		return $this->UploadIteratorChunk->appendChunk($Chunk);
+		return $this->UploadIteratorChunked->appendChunked($Chunked);
 	}
 
 	public function addFile(TweetPhoto_Upload_File $File)
@@ -23,6 +23,8 @@ class TweetPhoto_Upload
 
 	public function upload($type = TweetPhoto_Config::UPLOAD_BOTH)
 	{
+		$headers = array();
+
 		if($type & (TweetPhoto_Config::UPLOAD_FILE | TweetPhoto_Config::UPLOAD_BOTH))
 		{
 			foreach($this->UploadIteratorFile as $File)
@@ -50,9 +52,66 @@ class TweetPhoto_Upload
 			}
 		}
 
-		if($type & (TweetPhoto_Config::UPLOAD_CHUNK | TweetPhoto_Config::UPLOAD_BOTH))
+		if($type & (TweetPhoto_Config::UPLOAD_CHUNKED | TweetPhoto_Config::UPLOAD_BOTH))
 		{
+			foreach($this->UploadIteratorChunked as $Chunked)
+			{
+				$IteratorChunks = $Chunked->getChunks();
 
+				foreach($IteratorChunks as $Chunk)
+				{
+					$headers = array();
+
+					$position = $IteratorChunks->key();
+
+					if($position != 0)
+					{
+						$headers[] = "TPTXID: {$Chunk->transaction_id}";
+					}
+
+					$response = TweetPhoto_Api::singleton()->sendRequest('/uploadchunk', TweetPhoto_Config::HTTP_METHOD_POST, $headers, $Chunk->chunk, false);
+
+					$IteratorChunks->next();
+
+					if($IteratorChunks->valid())
+					{
+						$IteratorChunks->current()->transaction_id = $response['results']->TransactionId;
+					}
+
+					$IteratorChunks->seek($position);
+
+					echo '<pre>';
+					echo "code[{$response['code']}] {$position}: {$Chunk->transaction_id}\n";
+					echo "Headers:\n";
+					print_r($headers);
+					echo '</pre>';
+				}
+
+
+				$headers = array
+				(
+					'TPAPIKEY: ' . TweetPhoto_Config::ACCOUNT_KEY,
+					'TPUTF8: true',
+					'TPMSG: ' . base64_encode('Chunk test'),
+					'TPTAGS: ' . base64_encode(''),
+					'TPMetadata: ' . base64_encode(''),
+					"TPLAT: 50",
+					"TPLONG: 50",
+					"TPPOST: false",
+					"TPMIMETYPE: image/jpg",
+					"TPTXID: {$Chunk->transaction_id}",
+					'Content-Type: application/x-www-form-urlencoded'
+				);
+
+				$response = TweetPhoto_Api::singleton()->sendRequest('/uploadchunkcomplete', TweetPhoto_Config::HTTP_METHOD_POST, $headers);
+
+				echo '<pre>';
+				echo "Response:\n";
+				print_r($response);
+				echo "Headers:\n";
+				print_r($headers);
+				echo '</pre>';
+			}
 		}
 
 		return true;

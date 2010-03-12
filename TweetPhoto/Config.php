@@ -8,21 +8,15 @@ class TweetPhoto_Config
 	const ACCOUNT_PASSWORD = PASSWORD;
 	const ACCOUNT_KEY      = API_KEY;
 
-	const HTTP_METHOD_GET    = 1;
-	const HTTP_METHOD_POST   = 2;
-	const HTTP_METHOD_PUT    = 4;
-	const HTTP_METHOD_DELETE = 8;
-
-	const PARAM_SEPARATOR = '&';
 	const CHARACTER_LIMIT = 200;
 
 	const SIGNIN_METHOD_TWITTER    = 1;
 	const SIGNIN_METHOD_FOURSQUARE = 2;
 	const SIGNIN_METHOD_FACEBOOK   = 4;
 
-	const UPLOAD_CHUNK = 1;
-	const UPLOAD_FILE  = 2;
-	const UPLOAD_BOTH  = 4;
+	const UPLOAD_CHUNKED = 1;
+	const UPLOAD_FILE    = 2;
+	const UPLOAD_BOTH    = 4;
 
 	static public $sorts = array
 	(

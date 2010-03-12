@@ -7,9 +7,9 @@ class TweetPhoto_Upload_Iterator extends TweetPhoto_Iterator
 		parent::__construct();
 	}
 
-	public function appendChunk(TweetPhoto_Upload_Chunk $Chunk, $rewind = true)
+	public function appendChunked(TweetPhoto_Upload_Chunked $Chunked, $rewind = true)
 	{
-		return parent::append($Chunk, $rewind);
+		return parent::append($Chunked, $rewind);
 	}
 
 	public function appendFile(TweetPhoto_Upload_File $File, $rewind = true)
