@@ -12,27 +12,17 @@ class TweetPhoto_Request
 	const REQUEST_METHOD_CURL  = 1;
 	const REQUEST_METHOD_SOCKS = 2;
 
-	const HEADER_REQUEST  = 1;
-	const HEADER_RESPONSE = 2;
-
-	const EOL_HEADER = "\r\n";
-	const EOL_BLOCK  = "\r\n\r\n";
-
-	private $RequestHeaderIterator;
-	private $ResponseHeaderIterator;
+	private $HeaderBlock;
 
 	private $url;
 	private $method;
-	private $status;
 
-	public function __construct($url, $http_method = self::HTTP_METHOD_GET)
+	public function __construct($url, $method = self::HTTP_METHOD_GET, $data = null)
 	{
 		$this->url    = $url;
-		$this->method = $http_method;
-		$this->status = null;
+		$this->method = $method;
 
-		$this->RequestHeaderIterator  = new TweetPhoto_Iterator;
-		$this->ResponseHeaderIterator = new TweetPhoto_Iterator;
+		$this->HeaderBlock = null;
 	}
 
 	public function buildQueryString(array $arguments, $append_to_url = true)
@@ -47,7 +37,7 @@ class TweetPhoto_Request
 				{
 					if(strstr($argument, '='))
 					{
-						list($key, $value) = explode('=', $argument);
+						list($key, $value) = explode('=', $argument, 2);
 
 						$existing_arguments[$key] = $value;
 					}
@@ -72,32 +62,16 @@ class TweetPhoto_Request
 		return $query_string;
 	}
 
-	public function addHeader(TweetPhoto_Request_Header $Header)
+	public function addHeaderBlock(TweetPhoto_Request_Header_Block &$HeaderBlock)
 	{
-		return $this->RequestHeaderIterator->append($Header);
-	}
-
-	public function buildHeaderBlock($type = TweetPhoto_Request::HEADER_REQUEST)
-	{
-		$return = '';
-
-		if($type & TweetPhoto_Request::HEADER_REQUEST)
+		if(false == is_null($this->HeaderBlock))
 		{
-			foreach($this->RequestHeaderIterator as $Header)
-			{
-				$return .= ($this->RequestHeaderIterator->key() != 0 ? self::EOL_HEADER : '') . $Header;
-			}
+			throw new TweetPhoto_Exception('There may only be one instance of class TweetPhoto_Request_Header_Block per class TweetPhoto_Request.');
 		}
 
-		if($type & TweetPhoto_Request::HEADER_RESPONSE)
-		{
-			foreach($this->ResponseHeaderIterator as $Header)
-			{
-				$return .= ($this->ResponseHeaderIterator->key() != 0 ? self::EOL_HEADER : '') . $Header;
-			}
-		}
+		$this->HeaderBlock = &$HeaderBlock;
 
-		return $return;
+		return true;
 	}
 
 	public function send($method = self::HTTP_METHOD_CURL)
