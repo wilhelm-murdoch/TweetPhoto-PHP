@@ -2,7 +2,7 @@
 
 class TweetPhoto_Config
 {
-	const SERVICE = 'http://tweetphotoapi.com/api/tpapi.svc/json';
+	const SERVICE = 'http://tweetphotoapi.com/api/tpapi.svc/json/';
 
 	const ACCOUNT_USERNAME = USERNAME;
 	const ACCOUNT_PASSWORD = PASSWORD;
@@ -77,26 +77,4 @@ class TweetPhoto_Config
 		'shortenurl',
 		'pin'
 	);
-
-	static private $messages = array
-	(
-		'VOTES' => array
-		(
-			200 => 'Vote worked and counted',
-			401 => 'Invalid Credentials',
-			409 => 'User has already voted for that photo',
-			404 => 'Photo not found',
-			500 => 'Internal Error'
-		),
-		'COMMENTS' => array
-		(
-			404 => 'Comment not found',
-			200 => 'Comment sucessfully removed'
-		)
-	);
-
-	static public function getResponse($type, $code)
-	{
-		return isset(self::$messages[$type][$code]) ? self::$messages[$type][$code] : null;
-	}
 }

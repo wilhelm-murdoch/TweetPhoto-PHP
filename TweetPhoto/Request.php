@@ -16,11 +16,13 @@ class TweetPhoto_Request
 
 	private $url;
 	private $method;
+	private $data;
 
 	public function __construct($url, $method = self::HTTP_METHOD_GET, $data = null)
 	{
 		$this->url    = $url;
 		$this->method = $method;
+		$this->data   = $data;
 
 		$this->HeaderBlock = null;
 	}
@@ -74,18 +76,68 @@ class TweetPhoto_Request
 		return true;
 	}
 
-	public function send($method = self::HTTP_METHOD_CURL)
+	private function sendUsingCurl($method)
 	{
-		if($method & self::HTTP_METHOD_CURL)
-		{
-			if(false == function_exists('curl_exec'))
-			{
+		$curl = curl_init($this->url);
 
-			}
+		if(is_null($this->HeaderBlock))
+		{
+			$this->HeaderBlock = new TweetPhoto_Request_Header_Block;
+		}
+
+		if(false == is_null($this->data))
+		{
+			$this->HeaderBlock->addHeader(new TweetPhoto_Request_Header('Content-Length', strlen($this->data)));
+
+			curl_setopt($curl, CURLOPT_POSTFIELDS, $this->data);
 		}
 		else
 		{
-
+			$this->HeaderBlock->addHeader(new TweetPhoto_Request_Header('Content-Length', 0));
 		}
+
+		if($method & self::HTTP_METHOD_POST)
+		{
+			curl_setopt($curl, CURLOPT_PUT,  false);
+			curl_setopt($curl, CURLOPT_POST, true);
+		}
+		else if($method & self::HTTP_METHOD_PUT)
+		{
+			curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PUT');
+		}
+		else if($method & self::HTTP_METHOD_DELETE)
+		{
+			curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
+		}
+
+		curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl, CURLOPT_HEADER,         true);
+		curl_setopt($curl, CURLOPT_HTTPHEADER,     $this->HeaderBlock->asArray());
+
+		$response = curl_exec($curl);
+
+		curl_close($curl);
+
+		return $this->HeaderBlock->parse($response);
+	}
+
+	public function send($method = self::REQUEST_METHOD_CURL)
+	{
+		if($method & self::REQUEST_METHOD_CURL)
+		{
+			if(false == function_exists('curl_exec'))
+			{
+				throw new TweetPhoto_Exception('Requests using the cURL library requires PHP to be compiled with the  cURL extension.');
+			}
+
+			return $this->sendUsingCurl($method);
+		}
+		else
+		{
+			throw new TweetPhoto_Exception('At the moment, only requests using the cURL library are supported.');
+		}
+
+		return null;
 	}
 }

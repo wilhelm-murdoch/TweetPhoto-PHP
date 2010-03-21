@@ -62,14 +62,9 @@ class TweetPhoto_Api
 	 */
 	public function getUser($username = null)
 	{
-		if(is_null($username))
-		{
-			throw new TweetPhoto_Exception('Provide a valid user name or ID.');
-		}
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . 'users/' . (is_null($username) ? $this->username : $username));
 
-		$result = $this->sendRequest('/users/' . (is_null($username) ? $this->username : $username));
-
-		return $result;
+		return $Request->send();
 	}
 
 
@@ -82,16 +77,17 @@ class TweetPhoto_Api
 	 * @access Static Private
 	 * @return Boolean
 	 */
-	public function getUserSettings($username = null)
+	public function getUserSettings($user_id)
 	{
-		if(is_null($username))
-		{
-			throw new TweetPhoto_Exception('Provide a valid user name or ID.');
-		}
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "users/{$user_id}/settings");
 
-		$result = $this->sendRequest('/users/' . (is_null($username) ? $this->username : $username) . '/settings');
+		$Block = new TweetPhoto_Request_Header_Block;
 
-		return $result;
+		$Block->addHeader(new TweetPhoto_Request_Header('TPAPI', "{$this->username},{$this->password}"));
+
+		$Request->addHeaderBlock($Block);
+
+		return $Request->send();
 	}
 
 
@@ -106,19 +102,20 @@ class TweetPhoto_Api
 	 */
 	public function setUserSettings($username = null, $filter, $value)
 	{
-		if(is_null($username))
-		{
-			throw new TweetPhoto_Exception('Provide a valid user name or ID.');
-		}
-
 		if(false == in_array(trim(strtolower($filter)), TweetPhoto_Config::$user_settings))
 		{
 			throw new TweetPhoto_Exception('Provide a valid user setting.');
 		}
 
-		$result = $this->sendRequest('/users/' . (is_null($username) ? $this->username : $username) . "/settings/{$filter}", TweetPhoto_Config::HTTP_METHOD_PUT, array(), $value);
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE .'users/' . (is_null($username) ? $this->username : $username) . "/settings/{$filter}", TweetPhoto_Request::HTTP_METHOD_PUT, $value);
 
-		return $result;
+		$Block = new TweetPhoto_Request_Header_Block;
+
+		$Block->addHeader(new TweetPhoto_Request_Header('TPAPI', "{$this->username},{$this->password}"));
+
+		$Request->addHeaderBlock($Block);
+
+		return $Request->send();
 	}
 
 
@@ -143,9 +140,11 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid sort option.');
 		}
 
-		$result = $this->sendRequest("/users/{$user_id}/comments?" . http_build_query(array('ind' => $start, 'ps' => $limit, 'sort' => $sort), null, '&'));
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "users/{$user_id}/comments");
 
-		return $result;
+		$Request->buildQueryString(array('ind' => $start, 'ps' => $limit, 'sort' => $sort));
+
+		return $Request->send();
 	}
 
 
@@ -170,9 +169,11 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid network filter option.');
 		}
 
-		$result = $this->sendRequest("/users/{$user_id}/friends?" . http_build_query(array('ind' => $start, 'ps' => $limit, 'nf' => $network), null, '&'));
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "users/{$user_id}/friends");
 
-		return $result;
+		$Request->buildQueryString(array('ind' => $start, 'ps' => $limit, 'nf' => $network));
+
+		return $Request->send();
 	}
 
 
@@ -197,9 +198,11 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid sort option.');
 		}
 
-		$result = $this->sendRequest("/users/{$user_id}/favorites?" . http_build_query(array('ind' => $start, 'ps' => $limit, 'sort' => $sort), null, '&'));
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "users/{$user_id}/favorites");
 
-		return $result;
+		$Request->buildQueryString(array('ind' => $start, 'ps' => $limit, 'sort' => $sort));
+
+		return $Request->send();
 	}
 
 
@@ -219,21 +222,22 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid service ID.');
 		}
 
-		$headers = array
-		(
-			"TPAPIKEY: {$this->api_key}"
-		);
-
-		$data = array
+		$data = json_encode(array
 		(
 			'Service'        => $service_id,
 			'IdentitySecret' => $secret,
 			'IdentityToken'  => $token
-		);
+		));
 
-		$result = $this->sendRequest('/link', TweetPhoto_Config::HTTP_METHOD_POST, $headers, $data);
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . 'link', TweetPhoto_Request::HTTP_METHOD_POST, $data);
 
-		return $result;
+		$Block = new TweetPhoto_Request_Header_Block;
+
+		$Block->addHeader(new TweetPhoto_Request_Header('TPAPIKEY', $this->api_key));
+
+		$Request->addHeaderBlock($Block);
+
+		return $Request->send();
 	}
 
 
@@ -248,9 +252,15 @@ class TweetPhoto_Api
 	 */
 	public function getLinkedServices()
 	{
-		$result = $this->sendRequest('/profiles');
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . 'profiles');
 
-		return $result;
+		$Block = new TweetPhoto_Request_Header_Block;
+
+		$Block->addHeader(new TweetPhoto_Request_Header('TPAPI', "{$this->username},{$this->password}"));
+
+		$Request->addHeaderBlock($Block);
+
+		return $Request->send();
 	}
 
 
@@ -270,9 +280,11 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid filter option.');
 		}
 
-		$result = $this->sendRequest('/socialfeed?' . http_build_query(array('ind' => $start, 'ps' => $limit, 'filter' => $filter, 'eventdate' => $date), null, '&'));
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . 'socialfeed');
 
-		return $result;
+		$Request->buildQueryString(array('ind' => $start, 'ps' => $limit, 'filter' => $filter, 'eventdate' => $date));
+
+		return $Request->send();
 	}
 
 
@@ -297,9 +309,11 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid filter option.');
 		}
 
-		$result = $this->sendRequest("/users/{$user_id}/feed?" . http_build_query(array('ind' => $start, 'ps' => $limit, 'filter' => $filter, 'eventdate' => $date), null, '&'));
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "users/{$user_id}/feed");
 
-		return $result;
+		$Request->buildQueryString(array('ind' => $start, 'ps' => $limit, 'filter' => $filter, 'eventdate' => $date));
+
+		return $Request->send();
 	}
 
 
@@ -329,9 +343,17 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid filtering option.');
 		}
 
-		$result = $this->sendRequest("/users/{$user_id}/photos?" . http_build_query(array('ind' => $start, 'ps' => $limit, 'sort' => $sort, 'sf' => $filter), null, '&'));
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . 'profiles');
 
-		return $result;
+		$Block = new TweetPhoto_Request_Header_Block;
+
+		$Block->addHeader(new TweetPhoto_Request_Header('TPAPI', "{$this->username},{$this->password}"));
+
+		$Request->addHeaderBlock($Block);
+
+		$Request->buildQueryString(array('ind' => $start, 'ps' => $limit, 'sort' => $sort, 'sf' => $filter));
+
+		return $Request->send();
 	}
 
 
@@ -351,9 +373,11 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid search term or tag list.');
 		}
 
-		$result = $this->sendRequest('/querycount?' . http_build_query(array('search' => $search, 'tags' => $tags), null, '&'));
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . 'querycount');
 
-		return $result;
+		$Request->buildQueryString(array('search' => $search, 'tags' => $tags));
+
+		return $Request->send();
 	}
 
 
@@ -381,13 +405,14 @@ class TweetPhoto_Api
 
 			case TweetPhoto_Config::SIGNIN_METHOD_TWITTER:
 
-				$headers = array
-				(
-					"TPAPIKEY: {$this->api_key}",
-					'TPSERVICE: Twitter'
-				);
+				$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . 'signin');
 
-				$result = $this->sendRequest('/signin', $headers);
+				$Block = new TweetPhoto_Request_Header_Block;
+
+				$Block->addHeader(new TweetPhoto_Request_Header('TPAPI',     "{$this->username},{$this->password}"));
+				$Block->addHeader(new TweetPhoto_Request_Header('TPSERVICE', 'TWITTER'));
+
+				$Request->addHeaderBlock($Block);
 
 				break;
 
@@ -396,7 +421,7 @@ class TweetPhoto_Api
 				throw new TweetPhoto_Exception('You have specified an invalid authentication method.');
 		}
 
-		return $result;
+		return $Request->send();
 	}
 
 
@@ -416,9 +441,9 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid photo ID.');
 		}
 
-		$result = $this->sendRequest("/photos/{$photo_id}");
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "photos/{$photo_id}");
 
-		return $result;
+		return $Request->send();
 	}
 
 
@@ -438,9 +463,9 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid photo ID.');
 		}
 
-		$result = $this->sendRequest("/photos/{$photo_id}/favorizers");
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "photos/{$photo_id}/favorizers");
 
-		return $result;
+		return $Request->send();
 	}
 
 
@@ -455,9 +480,11 @@ class TweetPhoto_Api
 	 */
 	public function getPhotosByGeoLocation($lat, $long, $start = 0, $limit = 25, $radius = 20000, $get_user = false)
 	{
-		$result = $this->sendRequest('/photos/bylocation?' . http_build_query(array('lat' => $lat, 'long' => $long, 'ind' => $start, 'ps' => $limit, 'getuser' => $get_user, 'dist' => $radius), null, '&'));
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "photos/{$photo_id}/favorizers");
 
-		return $result;
+		$Request->buildQueryString(array('lat' => $lat, 'long' => $long, 'ind' => $start, 'ps' => $limit, 'getuser' => $get_user, 'dist' => $radius));
+
+		return $Request->send();
 	}
 
 
@@ -477,9 +504,11 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid FourSquare venue ID.');
 		}
 
-		$result = $this->sendRequest('/photos/byvenue?' . http_build_query(array('vid' => $venue_id, 'ind' => $start, 'ps' => $limit), null, '&'));
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . 'photos/byvenue');
 
-		return $result;
+		$Request->buildQueryString(array('vid' => $venue_id, 'ind' => $start, 'ps' => $limit));
+
+		return $Request->send();
 	}
 
 
@@ -499,10 +528,11 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid photo ID.');
 		}
 
-		$result = $this->sendRequest("/photos/{$photo_id}/tags");
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "photos/{$photo_id}/tags");
 
-		return $result;
+		return $Request->send();
 	}
+
 
 	// ! Executor Method
 
@@ -520,9 +550,11 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid FourSquare venue ID.');
 		}
 
-		$result = $this->sendRequest("/photos/{$photo_id}/viewers?" . http_build_query(array('ind' => $start, 'ps' => $limit), null, '&'));
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "photos/{$photo_id}/viewers");
 
-		return $result;
+		$Request->buildQueryString(array('ind' => $start, 'ps' => $limit));
+
+		return $Request->send();
 	}
 
 
@@ -542,9 +574,9 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide valid photo and user IDs.');
 		}
 
-		$result = $this->sendRequest("/users/{$user_id}/favorites/{$photo_id}");
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "users/{$user_id}/favorites/{$photo_id}");
 
-		return $result;
+		return $Request->send();
 	}
 
 
@@ -564,9 +596,9 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide valid photo and user IDs.');
 		}
 
-		$result = $this->sendRequest("/users/{$user_id}/votes/{$photo_id}");
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "users/{$user_id}/votes/{$photo_id}");
 
-		return $result;
+		return $Request->send();
 	}
 
 
@@ -586,9 +618,11 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid filtering option.');
 		}
 
-		$result = $this->sendRequest("/leaderboard/uploadedtoday/{$filter}?" . http_build_query(array('ind' => $start, 'ps' => $limit), null, '&'));
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "leaderboard/uploadedtoday/{$filter}");
 
-		return $result;
+		$Request->buildQueryString(array('ind' => $start, 'ps' => $limit));
+
+		return $Request->send();
 	}
 
 
@@ -608,9 +642,11 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid photo ID.');
 		}
 
-		$result = $this->sendRequest("/photos/{$photo_id}/comments?" . http_build_query(array('ind' => $start, 'ps' => $limit), null, '&'));
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "photos/{$photo_id}/comments");
 
-		return $result;
+		$Request->buildQueryString(array('ind' => $start, 'ps' => $limit));
+
+		return $Request->send();
 	}
 
 
@@ -630,9 +666,16 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid photo ID.');
 		}
 
-		$result = $this->sendRequest("/photos/{$photo_id}/thumbsup", TweetPhoto_Config::HTTP_METHOD_PUT, array('TPPOST: ' . ($post_to_twitter ? 'TRUE' : 'FALSE')));
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "photos/{$photo_id}/thumbsup", TweetPhoto_Config::HTTP_METHOD_PUT);
 
-		return $result;
+		$Block = new TweetPhoto_Request_Header_Block;
+
+		$Block->addHeader(new TweetPhoto_Request_Header('TPAPI',  "{$this->username},{$this->password}"));
+		$Block->addHeader(new TweetPhoto_Request_Header('TPPOST', ($post_to_twitter ? 'TRUE' : 'FALSE')));
+
+		$Request->addHeaderBlock($Block);
+
+		return $Request->send();
 	}
 
 
@@ -652,9 +695,16 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid photo ID.');
 		}
 
-		$result = $this->sendRequest("/photos/{$photo_id}/thumbsdown", TweetPhoto_Config::HTTP_METHOD_PUT, array('TPPOST: ' . ($post_to_twitter ? 'TRUE' : 'FALSE')));
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "photos/{$photo_id}/thumbsdown", TweetPhoto_Config::HTTP_METHOD_PUT);
 
-		return $result;
+		$Block = new TweetPhoto_Request_Header_Block;
+
+		$Block->addHeader(new TweetPhoto_Request_Header('TPAPI',  "{$this->username},{$this->password}"));
+		$Block->addHeader(new TweetPhoto_Request_Header('TPPOST', ($post_to_twitter ? 'TRUE' : 'FALSE')));
+
+		$Request->addHeaderBlock($Block);
+
+		return $Request->send();
 	}
 
 
@@ -674,9 +724,15 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide valid photo and user IDs.');
 		}
 
-		$result = $this->sendRequest("/users/{$user_id}/favorites/{$photo_id}", TweetPhoto_Config::HTTP_METHOD_POST);
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "users/{$user_id}/favorites/{$photo_id}", TweetPhoto_Config::HTTP_METHOD_POST);
 
-		return $result;
+		$Block = new TweetPhoto_Request_Header_Block;
+
+		$Block->addHeader(new TweetPhoto_Request_Header('TPAPI',  "{$this->username},{$this->password}"));
+
+		$Request->addHeaderBlock($Block);
+
+		return $Request->send();
 	}
 
 
@@ -696,9 +752,15 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide valid photo and user IDs.');
 		}
 
-		$result = $this->sendRequest("/users/{$user_id}/favorites/{$photo_id}", TweetPhoto_Config::HTTP_METHOD_DELETE);
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "users/{$user_id}/favorites/{$photo_id}", TweetPhoto_Config::HTTP_METHOD_DELETE);
 
-		return $result;
+		$Block = new TweetPhoto_Request_Header_Block;
+
+		$Block->addHeader(new TweetPhoto_Request_Header('TPAPI',  "{$this->username},{$this->password}"));
+
+		$Request->addHeaderBlock($Block);
+
+		return $Request->send();
 	}
 
 
@@ -718,9 +780,15 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide valid photo and user IDs.');
 		}
 
-		$result = $this->sendRequest("/users/{$user_id}/views/{$photo_id}", TweetPhoto_Config::HTTP_METHOD_POST);
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "users/{$user_id}/views/{$photo_id}", TweetPhoto_Config::HTTP_METHOD_POST);
 
-		return $result;
+		$Block = new TweetPhoto_Request_Header_Block;
+
+		$Block->addHeader(new TweetPhoto_Request_Header('TPAPI',  "{$this->username},{$this->password}"));
+
+		$Request->addHeaderBlock($Block);
+
+		return $Request->send();
 	}
 
 
@@ -745,9 +813,16 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide valid comment.');
 		}
 
-		$result = $this->sendRequest("/users/{$user_id}/comments/{$photo_id}", TweetPhoto_Config::HTTP_METHOD_POST, array('TPPOST: ' . ($post_to_twitter ? 'TRUE' : 'FALSE')), $comment);
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "users/{$user_id}/comments/{$photo_id}", TweetPhoto_Config::HTTP_METHOD_POST, json_encode($comment));
 
-		return $result;
+		$Block = new TweetPhoto_Request_Header_Block;
+
+		$Block->addHeader(new TweetPhoto_Request_Header('TPAPI',  "{$this->username},{$this->password}"));
+		$Block->addHeader(new TweetPhoto_Request_Header('TPPOST', ($post_to_twitter ? 'TRUE' : 'FALSE')));
+
+		$Request->addHeaderBlock($Block);
+
+		return $Request->send();
 	}
 
 
@@ -767,9 +842,15 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide valid photo, comment and user IDs.');
 		}
 
-		$result = $this->sendRequest("/users/{$user_id}/comments/{$photo_id}/{$comment_id}", TweetPhoto_Config::HTTP_METHOD_DELETE);
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "users/{$user_id}/comments/{$photo_id}/{$comment_id}", TweetPhoto_Config::HTTP_METHOD_DELETE);
 
-		return $result;
+		$Block = new TweetPhoto_Request_Header_Block;
+
+		$Block->addHeader(new TweetPhoto_Request_Header('TPAPI',  "{$this->username},{$this->password}"));
+
+		$Request->addHeaderBlock($Block);
+
+		return $Request->send();
 	}
 
 
@@ -789,9 +870,15 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid photo ID.');
 		}
 
-		$response = $this->sendRequest("/photos/{$photo_id}", TweetPhoto_Config::HTTP_METHOD_DELETE);
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "photos/{$photo_id}", TweetPhoto_Config::HTTP_METHOD_DELETE);
 
-		return $result;
+		$Block = new TweetPhoto_Request_Header_Block;
+
+		$Block->addHeader(new TweetPhoto_Request_Header('TPAPI',  "{$this->username},{$this->password}"));
+
+		$Request->addHeaderBlock($Block);
+
+		return $Request->send();
 	}
 
 
@@ -821,9 +908,15 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide valid broadcast message.');
 		}
 
-		$result = $this->sendRequest("/users/{$user_id}/broadcastmessage/{$broadcast_id}", TweetPhoto_Config::HTTP_METHOD_PUT, array(), $message);
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "users/{$user_id}/broadcastmessage/{$broadcast_id}", TweetPhoto_Config::HTTP_METHOD_PUT, json_encode($message));
 
-		return $result;
+		$Block = new TweetPhoto_Request_Header_Block;
+
+		$Block->addHeader(new TweetPhoto_Request_Header('TPAPI',  "{$this->username},{$this->password}"));
+
+		$Request->addHeaderBlock($Block);
+
+		return $Request->send();
 	}
 
 
@@ -843,9 +936,15 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid photo ID.');
 		}
 
-		$result = $this->sendRequest("/photos/{$photo_id}/location", TweetPhoto_Config::HTTP_METHOD_PUT, array(), "{$lat}, {$long}");
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "photos/{$photo_id}/location", TweetPhoto_Config::HTTP_METHOD_PUT, json_encode("{$lat}, {$long}"));
 
-		return $result;
+		$Block = new TweetPhoto_Request_Header_Block;
+
+		$Block->addHeader(new TweetPhoto_Request_Header('TPAPI',  "{$this->username},{$this->password}"));
+
+		$Request->addHeaderBlock($Block);
+
+		return $Request->send();
 	}
 
 
@@ -865,9 +964,15 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid photo ID.');
 		}
 
-		$result = $this->sendRequest("/photos/{$photo_id}/location", TweetPhoto_Config::HTTP_METHOD_DELETE);
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "photos/{$photo_id}/location", TweetPhoto_Config::HTTP_METHOD_DELETE);
 
-		return $result;
+		$Block = new TweetPhoto_Request_Header_Block;
+
+		$Block->addHeader(new TweetPhoto_Request_Header('TPAPI',  "{$this->username},{$this->password}"));
+
+		$Request->addHeaderBlock($Block);
+
+		return $Request->send();
 	}
 
 
@@ -887,9 +992,15 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide a valid photo ID.');
 		}
 
-		$result = $this->sendRequest("/photos/{$photo_id}/tags", TweetPhoto_Config::HTTP_METHOD_PUT, array(), $tag);
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "photos/{$photo_id}/tags", TweetPhoto_Config::HTTP_METHOD_PUT, json_encode($tag));
 
-		return $result;
+		$Block = new TweetPhoto_Request_Header_Block;
+
+		$Block->addHeader(new TweetPhoto_Request_Header('TPAPI',  "{$this->username},{$this->password}"));
+
+		$Request->addHeaderBlock($Block);
+
+		return $Request->send();
 	}
 
 
@@ -909,9 +1020,15 @@ class TweetPhoto_Api
 			throw new TweetPhoto_Exception('Provide valid photo and tag IDs.');
 		}
 
-		$result = $this->sendRequest("/photos/{$photo_id}/tags/{$tag_id}", TweetPhoto_Config::HTTP_METHOD_DELETE);
+		$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE . "photos/{$photo_id}/tags/{$tag_id}", TweetPhoto_Config::HTTP_METHOD_DELETE);
 
-		return $result;
+		$Block = new TweetPhoto_Request_Header_Block;
+
+		$Block->addHeader(new TweetPhoto_Request_Header('TPAPI',  "{$this->username},{$this->password}"));
+
+		$Request->addHeaderBlock($Block);
+
+		return $Request->send();
 	}
 
 
@@ -924,57 +1041,6 @@ class TweetPhoto_Api
 	 * @access Static Private
 	 * @return Boolean
 	 */
-	public function sendRequest($url, $method = TweetPhoto_Config::HTTP_METHOD_GET, array $headers = array(), $data = null, $json_encode = true)
-	{
-		$headers[] = "TPAPI: {$this->username},{$this->password}";
-
-		$curl = curl_init(TweetPhoto_Config::SERVICE . $url);
-
-		if($data)
-		{
-			if($json_encode)
-			{
-				$data = json_encode($data);
-			}
-
-			$headers[] = 'Content-Length: ' . strlen($data);
-			curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
-		}
-		else
-		{
-			$headers[] = 'Content-Length: 0';
-		}
-
-		if($method & TweetPhoto_Config::HTTP_METHOD_POST)
-		{
-			curl_setopt($curl, CURLOPT_PUT,  false);
-			curl_setopt($curl, CURLOPT_POST, true);
-		}
-		else if($method & TweetPhoto_Config::HTTP_METHOD_PUT)
-		{
-			curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PUT');
-		}
-		else if($method & TweetPhoto_Config::HTTP_METHOD_DELETE)
-		{
-			curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
-		}
-
-		curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl, CURLOPT_HTTPHEADER,     $headers);
-
-		$response  = curl_exec($curl);
-		$http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-
-		curl_close($curl);
-
-		return array
-		(
-			'code'    => $http_code,
-			'results' => json_decode($response)
-		);
-	}
-
 	public function __get($property)
 	{
 		return $this->$property;

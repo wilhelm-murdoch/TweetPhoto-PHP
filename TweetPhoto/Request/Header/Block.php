@@ -21,6 +21,25 @@ class TweetPhoto_Request_Header_Block extends TweetPhoto_Request_Header_Parent i
 		return $this->HeaderIterator->append($Header);
 	}
 
+	public function asArray($assoc = false)
+	{
+		$array = array();
+
+		foreach($this->HeaderIterator as $Header)
+		{
+			if($assoc)
+			{
+				$array[$Header->header] = $Header->value;
+			}
+			else
+			{
+				$array[] = (string) $Header;
+			}
+		}
+
+		return $array;
+	}
+
 	public function __toString()
 	{
 		$return = '';

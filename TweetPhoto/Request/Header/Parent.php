@@ -24,6 +24,17 @@ abstract class TweetPhoto_Request_Header_Parent
 		return null;
 	}
 
+	private function buildResponse(&$response, TweetPhoto_Request_Header_Block &$HeaderBlock)
+	{
+		$Response = new stdClass;
+
+		$Response->status  = $this->extractHttpStatus($response);
+		$Response->Headers = $HeaderBlock;
+		$Response->body    = $this->body;
+
+		return $Response;
+	}
+
 	public function parse($response)
 	{
 		list($block, $this->body) = explode(self::EOL_BLOCK, $response, 2);
@@ -40,11 +51,6 @@ abstract class TweetPhoto_Request_Header_Parent
 			}
 		}
 
-		return array
-		(
-			'status' => $this->extractHttpStatus($response),
-			'header' => $HeaderBlock,
-			'body'   => $this->body
-		);
+		return $this->buildResponse($response, $HeaderBlock);
 	}
 }

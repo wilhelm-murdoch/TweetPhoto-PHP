@@ -6,25 +6,22 @@ require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'TweetPhoto' . DIRECTORY_
 try
 {
 
-$Request = new TweetPhoto_Request('http://tweetphotoapi.com/api/tpapi.svc/json/socialfeed?omg=banana&blah=d=d=d=d');
+$Api = new TweetPhoto_Api;
 
-echo $Request->buildQueryString(array('one' => 'blah', 'foo' => 'bar'));
+$Response = $Api->getPhotoTags(13977726);
 
-$Block = new TweetPhoto_Request_Header_Block;
+echo '<h3>HTTP Response:</h3>';
+echo $Response->status;
 
-$Block->addHeader(new TweetPhoto_Request_Header('content-type', 'application/json'));
-$Block->addHeader(new TweetPhoto_Request_Header('pragma', 'no-cache'));
-$Block->addHeader(new TweetPhoto_Request_Header('language', 'en'));
+echo '<h3>Headers:</h3>';
+echo '<pre>';
+echo $Response->Headers;
+echo '</pre>';
 
-$Request = new TweetPhoto_Request('http://tweetphotoapi.com/api/tpapi.svc/json/socialfeed', TweetPhoto_Request::HTTP_METHOD_POST, json_encode(array('foo', 'bar')));
-
-$Request->addHeaderBlock($Block);
-
-
-//$Request->dispatch();
-
-//$Request->dispatch();
-
+echo '<h3>Body:</h3>';
+echo '<pre>';
+print_r(json_decode($Response->body));
+echo '</pre>';
 
 //	$Upload = new TweetPhoto_Upload;
 //
