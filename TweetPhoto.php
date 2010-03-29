@@ -5,23 +5,28 @@ require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'TweetPhoto' . DIRECTORY_
 
 try
 {
+	$Upload = new TweetPhoto_Upload;
 
-$Api = new TweetPhoto_Api;
+	$Upload->addFile(new TweetPhoto_Upload_File('kitty.jpg'));
 
-$Response = $Api->getPhotoTags(13977726);
+	// This is a test merp merp
 
-echo '<h3>HTTP Response:</h3>';
-echo $Response->status;
+	$Response = $Upload->upload();
 
-echo '<h3>Headers:</h3>';
-echo '<pre>';
-echo $Response->Headers;
-echo '</pre>';
+	echo '<h3>HTTP Response:</h3>';
+	echo '<pre>';
+	print_r($Response->status);
+	echo '</pre>';
 
-echo '<h3>Body:</h3>';
-echo '<pre>';
-print_r(json_decode($Response->body));
-echo '</pre>';
+	echo '<h3>Headers:</h3>';
+	echo '<pre>';
+	echo $Response->Headers;
+	echo '</pre>';
+
+	echo '<h3>Body:</h3>';
+	echo '<pre>';
+	print_r(str_replace('<', '&lt;', json_decode($Response->body)));
+	echo '</pre>';
 
 //	$Upload = new TweetPhoto_Upload;
 //

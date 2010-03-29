@@ -21,6 +21,47 @@ class TweetPhoto_Upload
 		return $this->UploadIteratorFile->appendFile($File);
 	}
 
+	private function getMimeType($media)
+	{
+		$mime_types = array
+		(
+			'png'  => 'image/png',
+			'jpe'  => 'image/jpg',
+			'jpeg' => 'image/jpg',
+			'jpg'  => 'image/jpg',
+			'gif'  => 'image/gif',
+			'bmp'  => 'image/bmp',
+			'ico'  => 'image/vnd.microsoft.icon',
+			'tiff' => 'image/tiff',
+			'tif'  => 'image/tiff',
+			'svg'  => 'image/svg+xml',
+			'svgz' => 'image/svg+xml'
+		);
+
+		$extension = strtolower(end(explode('.', $media)));
+
+		if(array_key_exists($extension, $mime_types))
+		{
+			$mime_type = $mime_types[$extension];
+		}
+
+		if(function_exists('finfo_open'))
+		{
+			$finfo = finfo_open(FILEINFO_MIME);
+
+			$mime_type = finfo_file($finfo, $filename);
+
+			finfo_close($finfo);
+		}
+
+		if(false == in_array($mime_type, array('image/png', 'image/jpg')))
+		{
+			throw new TweetPhoto_Exception("{$mime_type} is not a valid mime type for {$media}.");
+		}
+
+		return $mime_type;
+	}
+
 	public function upload($type = TweetPhoto_Config::UPLOAD_BOTH)
 	{
 		$headers = array();
@@ -29,26 +70,30 @@ class TweetPhoto_Upload
 		{
 			foreach($this->UploadIteratorFile as $File)
 			{
-				if(false == file_exists($Upload->media))
+				if(false == file_exists($File->media))
 				{
 					throw new TweetPhoto_Exception("Media file `{$Upload->media}` could not be located");
 				}
 
-				$headers = array
-				(
-					'TPAPIKEY: ' . TweetPhoto_Config::ACCOUNT_KEY,
-					'TPUTF8: true',
-					'TPMSG: ' . base64_encode($Upload->message),
-					'TPTAGS: ' . base64_encode($Upload->tags),
-					'TPMetadata: ' . base64_encode($Upload->metadata),
-					"TPLAT: {$Upload->latitude}",
-					"TPLONG: {$Upload->longitude}",
-					"TPPOST: {$Upload->post_to_twitter}",
-					"TPMIMETYPE: image/jpg",
-					'Content-Type: application/x-www-form-urlencoded'
-				);
+				$Request = new TweetPhoto_Request(TweetPhoto_Config::SERVICE .'upload', TweetPhoto_Request::HTTP_METHOD_POST, file_get_contents($File->media, FILE_BINARY));
 
-				$response = TweetPhoto_Api::singleton()->sendRequest('/upload2', TweetPhoto_Config::HTTP_METHOD_POST, $headers, file_get_contents($Upload->media), false);
+				$Block = new TweetPhoto_Request_Header_Block;
+
+				$Block->addHeader(new TweetPhoto_Request_Header('TPAPIKEY',     TweetPhoto_Config::ACCOUNT_KEY));
+				$Block->addHeader(new TweetPhoto_Request_Header('TPAPI',        TweetPhoto_Config::ACCOUNT_USERNAME . ':' . TweetPhoto_Config::ACCOUNT_PASSWORD));
+				$Block->addHeader(new TweetPhoto_Request_Header('TPUTF8',       'true'));
+				$Block->addHeader(new TweetPhoto_Request_Header('TPMSG',        base64_encode($File->message)));
+				$Block->addHeader(new TweetPhoto_Request_Header('TPTAGS',       base64_encode($File->tags)));
+				$Block->addHeader(new TweetPhoto_Request_Header('TPMetadata',   base64_encode($File->metadata)));
+				$Block->addHeader(new TweetPhoto_Request_Header('TPLAT',        $File->latitude));
+				$Block->addHeader(new TweetPhoto_Request_Header('TPLONG',       $File->longitude));
+				$Block->addHeader(new TweetPhoto_Request_Header('TPPOST',       $File->post_to_twitter));
+				$Block->addHeader(new TweetPhoto_Request_Header('TPMIMETYPE',   $this->getMimeType($File->media)));
+				$Block->addHeader(new TweetPhoto_Request_Header('Content-Type', 'application/x-www-form-urlencoded'));
+
+				$Request->addHeaderBlock($Block);
+
+				return $Request->send();
 			}
 		}
 

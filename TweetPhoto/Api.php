@@ -100,7 +100,7 @@ class TweetPhoto_Api
 	 * @access Static Private
 	 * @return Boolean
 	 */
-	public function setUserSettings($username = null, $filter, $value)
+	public function setUserSettings($filter, $value, $username = null)
 	{
 		if(false == in_array(trim(strtolower($filter)), TweetPhoto_Config::$user_settings))
 		{
