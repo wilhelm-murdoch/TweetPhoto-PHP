@@ -114,7 +114,7 @@ class TweetPhoto_Request
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($curl, CURLOPT_HEADER,         true);
 		curl_setopt($curl, CURLOPT_HTTPHEADER,     $this->HeaderBlock->asArray());
-
+//print_r($this->HeaderBlock->asArray());
 		$response = curl_exec($curl);
 
 		curl_close($curl);

@@ -18,6 +18,6 @@ class TweetPhoto_Request_Header
 
 	public function __toString()
 	{
-		return "{$this->header}:{$this->value}";
+		return "{$this->header}: {$this->value}";
 	}
 }
